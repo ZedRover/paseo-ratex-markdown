@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants } from "node:zlib";
+import opentype from "opentype.js";
 
 // The Paseo server bundle is evaluated from a string: it has no plugin directory to read
-// files from at runtime. The RaTeX WASM binary and the KaTeX fonts therefore travel inside
-// the bundle as Brotli-compressed base64, generated from the pinned ratex-wasm package.
+// files from at runtime. The RaTeX WASM binary and precomputed KaTeX outlines therefore
+// travel inside the bundle as Brotli-compressed base64. Font parsing happens only here.
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageDir = path.join(root, "node_modules", "ratex-wasm");
@@ -56,22 +57,68 @@ await writeFile(
 
 const fonts = [];
 for (const id of FONT_IDS) {
-  const font = encode(await readFile(path.join(packageDir, "fonts", `KaTeX_${id}.ttf`)));
-  fonts.push({ id, ...font });
+  const bytes = await readFile(path.join(packageDir, "fonts", `KaTeX_${id}.ttf`));
+  const font = opentype.parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  const characters = font.tables.cmap.glyphIndexMap;
+  const outlines = {};
+  for (const index of new Set(Object.values(characters))) {
+    if (index === 0) continue; // .notdef is a missing glyph, not a drawable character.
+    outlines[index] = outlineOf(font.glyphs.get(index));
+  }
+  fonts.push({ id, ...encode(Buffer.from(JSON.stringify({ characters, outlines }))) });
 }
 await writeFile(
-  path.join(outDir, "katex-fonts.ts"),
+  path.join(outDir, "katex-glyphs.ts"),
   header("fonts/KaTeX_*.ttf") +
     "// KaTeX fonts: SIL Open Font License 1.1, see the LICENSE file in ratex-wasm.\n" +
-    "// Brotli-compressed TrueType files, then base64, keyed by RaTeX font ID.\n" +
+    "// Brotli-compressed JSON character maps and SVG outlines, then base64, keyed by RaTeX font ID.\n" +
     fonts.map(({ id, size, sha256 }) => `// ${id}: ${size} bytes, sha256 ${sha256}\n`).join("") +
-    "export const KATEX_FONTS_BROTLI_BASE64: Readonly<Record<string, string>> = {\n" +
+    "export const KATEX_GLYPHS_BROTLI_BASE64: Readonly<Record<string, string>> = {\n" +
     fonts.map(({ id, base64 }) => `  "${id}": "${base64}",\n`).join("") +
     "};\n",
 );
+// Remove the pre-0.1.1 generated asset when rebuilding an existing checkout.
+await rm(path.join(outDir, "katex-fonts.ts"), { force: true });
 
 const fontChars = fonts.reduce((sum, font) => sum + font.base64.length, 0);
 console.log(
   `Embedded ratex-wasm@${installed.version}: WASM ${wasm.size} bytes as ${wasm.base64.length} characters, ` +
-    `${fonts.length} fonts as ${fontChars} characters.`,
+    `${fonts.length} glyph atlases as ${fontChars} characters.`,
 );
+
+/** Preserve the original runtime renderer's paths, rounding and control-point bounds. */
+function outlineOf(glyph) {
+  const bounds = [Infinity, Infinity, -Infinity, -Infinity];
+  let d = "";
+  const include = (x, y) => {
+    bounds[0] = Math.min(bounds[0], x);
+    bounds[1] = Math.min(bounds[1], y);
+    bounds[2] = Math.max(bounds[2], x);
+    bounds[3] = Math.max(bounds[3], y);
+  };
+  // shared/scene.ts defines one em as 1000 units; all paths use that coordinate space.
+  for (const command of glyph.getPath(0, 0, 1000).commands) {
+    if (command.type === "Z") {
+      d += "Z";
+      continue;
+    }
+    if (command.type === "C") {
+      include(command.x1, command.y1);
+      include(command.x2, command.y2);
+      d += `C${num(command.x1)} ${num(command.y1)} ${num(command.x2)} ${num(command.y2)} `;
+    } else if (command.type === "Q") {
+      include(command.x1, command.y1);
+      d += `Q${num(command.x1)} ${num(command.y1)} `;
+    } else {
+      d += command.type;
+    }
+    include(command.x, command.y);
+    d += `${num(command.x)} ${num(command.y)}`;
+  }
+  return { d, bounds: d ? bounds : [0, 0, 0, 0] };
+}
+
+function num(value) {
+  const rounded = Math.round(value * 10) / 10;
+  return Object.is(rounded, -0) ? "0" : String(rounded);
+}

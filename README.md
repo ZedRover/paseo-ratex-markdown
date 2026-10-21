@@ -93,15 +93,17 @@ Markdown text ──► markdown-it + math rules (client) ──► document tre
                                                           │ formulas, batched
                                                           ▼
                          daemon: RaTeX WASM lays out each formula (DisplayList)
-                                 opentype.js reads KaTeX glyph outlines
+                                 precomputed KaTeX glyph outlines
                                                           │ scene: glyphs, rules, paths
                                                           ▼
    web/desktop: one SVG <img> per formula    iOS/Android: one inline SVG icon per glyph
 ```
 
-The daemon half embeds the `ratex-wasm` binary and the KaTeX fonts, so nothing is fetched at
-runtime. Its SVG output matches RaTeX's own `ratex-svg` renderer pixel for pixel on the test
-formulas. Layouts are cached on both sides, so a theme change repaints without new requests,
+The daemon half embeds the `ratex-wasm` binary and KaTeX glyph outlines, so nothing is fetched at
+runtime. During preparation, opentype.js extracts the outlines from the pinned fonts; the
+runtime reads those paths directly without a font parser. Its SVG output matches RaTeX's own
+`ratex-svg` renderer pixel for pixel on the test formulas. Layouts are cached on both sides,
+so a theme change repaints without new requests,
 and an edit only lays out the formulas that changed.
 
 ## Privacy and data access
@@ -148,7 +150,8 @@ Set `CHROME_CDP_URL` instead of `CHROME_BIN` to use a running Chrome, `RATEX_SCR
 to save screenshots, and `RATEX_CLIENT_BUNDLE=file` to test a bundle taken from a daemon's
 plugin catalog.
 
-`npm run check:package` checks the files `npm pack` would publish.
+`npm run check:package` checks the files `npm pack` would publish, including the size of
+reachable runtime dependencies and declarations against the registry's 2 MB budget.
 
 ## Credits
 

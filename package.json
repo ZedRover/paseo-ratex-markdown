@@ -1,6 +1,6 @@
 {
   "name": "paseo-ratex-markdown",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Opens Markdown files in Paseo with LaTeX math typeset by RaTeX.",
   "type": "module",
   "license": "MIT",
@@ -28,6 +28,7 @@
   },
   "files": [
     "paseo-plugin.json",
+    "npm-shrinkwrap.json",
     "OVERVIEW.md",
     "index.client.tsx",
     "index.server.ts",

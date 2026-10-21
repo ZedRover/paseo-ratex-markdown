@@ -1,24 +1,28 @@
 import { Buffer } from "node:buffer";
 import { brotliDecompressSync } from "node:zlib";
-import opentype, { type Font } from "opentype.js";
-import { UNITS_PER_EM, type Bounds, type GlyphOutline } from "../shared/scene.ts";
-import { KATEX_FONTS_BROTLI_BASE64 } from "./vendor/katex-fonts.ts";
+import type { GlyphOutline } from "../shared/scene.ts";
+import { KATEX_GLYPHS_BROTLI_BASE64 } from "./vendor/katex-glyphs.ts";
 
 export type ResolvedGlyph = { key: string; outline: GlyphOutline };
 
 /** Distinct (face, character) lookups kept; a document of rare Unicode cannot grow it forever. */
 const GLYPH_CACHE_LIMIT = 8192;
 
-const fonts = new Map<string, Font>();
+type FontAtlas = {
+  characters: Record<string, number>;
+  outlines: Record<string, GlyphOutline>;
+};
+
+const fonts = new Map<string, FontAtlas>();
 const glyphs = new Map<string, ResolvedGlyph | null>();
 
-function loadFont(id: string): Font | null {
+function loadFont(id: string): FontAtlas | null {
   const cached = fonts.get(id);
   if (cached) return cached;
-  const encoded = KATEX_FONTS_BROTLI_BASE64[id];
+  const encoded = KATEX_GLYPHS_BROTLI_BASE64[id];
   if (!encoded) return null;
   const bytes = brotliDecompressSync(Buffer.from(encoded, "base64"));
-  const font = opentype.parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  const font: FontAtlas = JSON.parse(bytes.toString("utf8"));
   fonts.set(id, font);
   return font;
 }
@@ -33,7 +37,7 @@ export function resolveGlyph(fontId: string, charCode: number): ResolvedGlyph | 
   const cacheKey = `${fontId}:${charCode}`;
   const cached = glyphs.get(cacheKey);
   if (cached !== undefined) return cached;
-  const face = KATEX_FONTS_BROTLI_BASE64[fontId] ? fontId : "Main-Regular";
+  const face = Object.hasOwn(KATEX_GLYPHS_BROTLI_BASE64, fontId) ? fontId : "Main-Regular";
   const char = katexTtfGlyphChar(face, charCode);
   const resolved =
     outlineOf(face, char) ?? (face === "Main-Regular" ? null : outlineOf("Main-Regular", char));
@@ -45,41 +49,10 @@ export function resolveGlyph(fontId: string, charCode: number): ResolvedGlyph | 
 function outlineOf(fontId: string, char: string): ResolvedGlyph | null {
   const font = loadFont(fontId);
   if (!font) return null;
-  const glyph = font.charToGlyph(char);
-  if (glyph.index === 0) return null;
-  const { commands } = glyph.getPath(0, 0, UNITS_PER_EM);
-  const bounds: Bounds = [Infinity, Infinity, -Infinity, -Infinity];
-  let d = "";
-  for (const command of commands) {
-    if (command.type === "Z") {
-      d += "Z";
-      continue;
-    }
-    if (command.type === "C") {
-      include(bounds, command.x1, command.y1);
-      include(bounds, command.x2, command.y2);
-      d += `C${num(command.x1)} ${num(command.y1)} ${num(command.x2)} ${num(command.y2)} `;
-    } else if (command.type === "Q") {
-      include(bounds, command.x1, command.y1);
-      d += `Q${num(command.x1)} ${num(command.y1)} `;
-    } else {
-      d += command.type;
-    }
-    include(bounds, command.x, command.y);
-    d += `${num(command.x)} ${num(command.y)}`;
-  }
-  // Spaces have no contours; they still resolve, so they are not drawn as text.
-  return {
-    key: `${fontId}#${glyph.index}`,
-    outline: { d, bounds: d ? bounds : [0, 0, 0, 0] },
-  };
-}
-
-function include(bounds: Bounds, x: number, y: number): void {
-  bounds[0] = Math.min(bounds[0], x);
-  bounds[1] = Math.min(bounds[1], y);
-  bounds[2] = Math.max(bounds[2], x);
-  bounds[3] = Math.max(bounds[3], y);
+  const index = font.characters[char.codePointAt(0)!];
+  const outline = index ? font.outlines[index] : undefined;
+  // Spaces resolve to empty paths, while missing characters fall back to system text.
+  return outline ? { key: `${fontId}#${index}`, outline } : null;
 }
 
 /** One decimal: TrueType points are integers, implied on-curve points are halves. */

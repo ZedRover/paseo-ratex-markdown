@@ -6,11 +6,11 @@ On Paseo 0.13 and later, opening a `.md` or `.markdown` file offers **Markdown (
 
 ## How it works
 
-The daemon lays out each formula with the bundled `ratex-wasm` module and reads the glyph outlines from the KaTeX fonts it ships, so nothing is downloaded at runtime. The app draws each formula as a vector image that follows the Paseo theme. Selecting text across a formula copies its TeX source. A formula RaTeX cannot parse is shown as source with the error.
+The daemon lays out each formula with the bundled `ratex-wasm` module and uses embedded KaTeX glyph outlines, so nothing is downloaded at runtime. The app draws each formula as a vector image that follows the Paseo theme. Selecting text across a formula copies its TeX source. A formula RaTeX cannot parse is shown as source with the error.
 
 ## Setup and requirements
 
-Paseo 0.11.0 or later. Installing from npm or Git needs Node.js and npm on the daemon host, where the plugin prepares its embedded math engine and fonts.
+Paseo 0.11.0 or later. Installing from npm or Git needs Node.js and npm on the daemon host. The npm package includes its embedded math engine and glyph outlines; a Git installation prepares them from locked dependencies.
 
 Desktop and web clients render formulas. iOS and Android clients render them where Paseo draws inline SVG icons (0.13 and later) and show the TeX source otherwise.
 
