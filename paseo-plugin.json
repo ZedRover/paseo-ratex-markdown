@@ -1,0 +1,20 @@
+{
+  "id": "paseo-ratex-markdown",
+  "name": "RaTeX Markdown",
+  "description": "Opens Markdown files with LaTeX math typeset by RaTeX.",
+  "icon": "assets/icon.png",
+  "media": [
+    "assets/screenshot-dark.png",
+    "assets/screenshot-light.png",
+    "assets/screenshot-compact.png"
+  ],
+  "requirements": {
+    "paseo": ">=0.11.0"
+  },
+  "build": [
+    [
+      "node",
+      "scripts/prepare-plugin.mjs"
+    ]
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "name": "paseo-ratex-markdown",
+  "version": "0.1.0",
+  "description": "Opens Markdown files in Paseo with LaTeX math typeset by RaTeX.",
+  "type": "module",
+  "license": "MIT",
+  "author": "ZedRover",
+  "keywords": [
+    "paseo",
+    "paseo-plugin",
+    "markdown",
+    "latex",
+    "math",
+    "ratex",
+    "katex"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZedRover/paseo-ratex-markdown.git"
+  },
+  "homepage": "https://github.com/ZedRover/paseo-ratex-markdown#readme",
+  "bugs": {
+    "url": "https://github.com/ZedRover/paseo-ratex-markdown/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "paseo-plugin.json",
+    "OVERVIEW.md",
+    "index.client.tsx",
+    "index.server.ts",
+    "client/",
+    "server/",
+    "shared/",
+    "scripts/embed-assets.mjs",
+    "scripts/prepare-plugin.mjs",
+    "assets/"
+  ],
+  "scripts": {
+    "prepare": "node scripts/embed-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:browser": "node --experimental-strip-types tests/browser/run.mjs",
+    "check:package": "node scripts/check-package.mjs"
+  },
+  "dependencies": {
+    "markdown-it": "15.0.3",
+    "markdown-it-footnote": "4.0.0",
+    "opentype.js": "2.0.0",
+    "ratex-wasm": "0.1.15"
+  },
+  "bundleDependencies": [
+    "markdown-it",
+    "markdown-it-footnote",
+    "opentype.js",
+    "ratex-wasm"
+  ],
+  "devDependencies": {
+    "@getpaseo/plugin": "0.11.2",
+    "@tanstack/react-query": "^5.90.11",
+    "@types/node": "^22.19.0",
+    "@types/react": "~19.2.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
+  }
+}
