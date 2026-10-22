@@ -110,6 +110,14 @@ if (mode === "file") client.addFilePanel = (panel) => (registrations.filePanels.
 const bundle = await (await fetch("/plugin.js")).text();
 const exports = globalThis.eval(bundle)(runtimeRequire);
 exports.default(client);
+// The Command Center runs a workspace item with the workspace snapshot and an openPanel callback.
+window.openedPanels = [];
+window.runCommand = (id, workspace) =>
+  registrations.commands.find((command) => command.id === id).onSelect({
+    context: "workspace",
+    workspace,
+    openPanel: (panelId) => window.openedPanels.push(panelId),
+  });
 window.registrations = {
   workspacePanels: registrations.workspacePanels.map(({ id, title, icon, context, locations }) => ({ id, title, icon, context, locations })),
   commands: registrations.commands.map(({ id, title, context }) => ({ id, title, context })),

@@ -2,7 +2,7 @@ RaTeX Markdown renders Markdown files with their LaTeX math typeset by RaTeX, a 
 
 ## Opening a file
 
-On Paseo 0.13 and later, opening a `.md` or `.markdown` file offers **Markdown (RaTeX)** alongside Paseo's own Markdown and Source panels, and **Don't ask me again** makes it the default. On Paseo 0.11 and 0.12, which have no file panels, run **Open Markdown preview (RaTeX)** from the Command Center in a workspace and pick a file from the list. The open document follows edits on disk.
+On Paseo 0.13 and later, opening a `.md` or `.markdown` file offers **Markdown (RaTeX)** alongside Paseo's own Markdown and Source panels, and **Don't ask me again** makes it the default. On Paseo 0.11 and 0.12, which have no file panels, open a Markdown file and run **Open Markdown preview (RaTeX)** from the Command Center: the panel shows that file. Run from any other tab, it lists the workspace's Markdown files to pick from. The open document follows edits on disk.
 
 ## How it works
 
@@ -16,7 +16,7 @@ Desktop and web clients render formulas. iOS and Android clients render them whe
 
 ## Data access
 
-The daemon reads only Markdown and image files inside the directory of the workspace being viewed, after resolving symlinks, and refuses paths outside it. It makes no network requests. Images with `http` or `https` addresses in a document are loaded by the app directly. Links open in the system browser only for `http`, `https` and `mailto` addresses. Raw HTML in a document is never interpreted: HTML blocks show as source, and inline tags are either dropped with their text kept (formatting such as `<kbd>`) or shown as written.
+The daemon reads only Markdown and image files inside the directory of the workspace being viewed, after resolving symlinks, and refuses paths outside it. It makes no network requests. Images with `http` or `https` addresses in a document are loaded by the app directly. Links open in the system browser only for `http`, `https` and `mailto` addresses. Raw HTML in a document is never interpreted: HTML blocks show as source, and inline tags are either dropped with their text kept (formatting such as `<kbd>`) or shown as written. On Paseo 0.11 and 0.12 the preview command reads the tab layout the app keeps in its local storage on web and desktop, only to find the open Markdown file.
 
 ## Limitations
 

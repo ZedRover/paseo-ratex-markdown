@@ -264,6 +264,37 @@ try {
     console.log("compact layout: no horizontal overflow");
   }
 
+  // B2. The command opens the Markdown file of the focused tab, read from the layout Paseo 0.11
+  // and 0.12 persist in localStorage, and switches a panel that is already open.
+  {
+    const page = await open("mode=workspace&theme=dark", { width: 900, height: 700, deviceScaleFactor: 1 });
+    await page.waitForSelector('[aria-label="Open docs/demo.md"]');
+    const focusFile = (file) =>
+      page.evaluate((file) => {
+        const tabs = [
+          { tabId: "agent_a", target: { kind: "agent", agentId: "a" }, createdAt: 1 },
+          { tabId: `file_${file}`, target: { kind: "file", path: file }, createdAt: 2 },
+        ];
+        const root = { kind: "pane", pane: { id: "main", tabIds: tabs.map((tab) => tab.tabId), focusedTabId: `file_${file}`, tabs } };
+        const state = { layoutByWorkspace: { "srv_local:workspace": { focusedPaneId: "main", root } } };
+        localStorage.setItem("workspace-layout-state", JSON.stringify({ state, version: 2 }));
+      }, file);
+    const runCommand = () => page.evaluate((directory) => window.runCommand("open-preview", { id: "workspace", directory }), workspace);
+
+    await focusFile("notes/other.markdown");
+    await runCommand();
+    await page.waitForFunction(() => document.getElementById("root").innerText.includes("Other notes"), { timeout: 15000 });
+    await page.waitForFunction((selector) => document.querySelectorAll(selector).length === 1, { timeout: 15000 }, formulaImages);
+    await focusFile(`${workspace}/README.md`);
+    await runCommand();
+    await page.waitForFunction(() => document.getElementById("root").innerText.includes("Fixture workspace"), { timeout: 15000 });
+    assert.deepEqual(await page.evaluate(() => window.openedPanels), ["preview", "preview"]);
+    assert.equal((await rpcs(page, "files.read")).at(-1).input.path, "README.md", "an absolute tab path is made workspace-relative");
+    await page.evaluate(() => localStorage.removeItem("workspace-layout-state"));
+    await page.close();
+    console.log("command: opens the focused Markdown tab and switches an open panel");
+  }
+
   // C. Paseo 0.13 file panels: the plugin renders inside the file tab instead.
   {
     const file = path.join(workspace, "docs", "demo.md");

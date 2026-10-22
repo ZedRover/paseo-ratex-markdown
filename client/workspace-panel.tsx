@@ -2,7 +2,7 @@ import type { PluginWorkspacePanelProps } from "@getpaseo/plugin/client";
 import { openExternalUrl, useRpc } from "@getpaseo/plugin/client";
 import { FlatList, Icon, Modal, TextInput } from "@getpaseo/plugin/client/react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { listMarkdownFilesRpc, readImageRpc, readMarkdownFileRpc } from "../shared/contracts";
 import { MarkdownDocument } from "./document";
@@ -12,8 +12,22 @@ import { isExternalLink, resolveMarkdownLink } from "./links";
 /** How often an open document checks the disk; unchanged files are not sent again. */
 const POLL_INTERVAL = 2000;
 
-/** The file each workspace showed last, so reopening the panel returns to it. */
-const lastOpened = new Map<string, string>();
+/**
+ * The file each workspace shows, outside the panel: reopening the panel returns to it, and the
+ * command can switch a panel that is already open.
+ */
+const shownFiles = new Map<string, string>();
+const shownFileListeners = new Set<() => void>();
+
+export function showMarkdownFile(workspaceId: string, path: string): void {
+  shownFiles.set(workspaceId, path);
+  shownFileListeners.forEach((listener) => listener());
+}
+
+function subscribeShownFiles(listener: () => void): () => void {
+  shownFileListeners.add(listener);
+  return () => shownFileListeners.delete(listener);
+}
 
 type Theme = PluginWorkspacePanelProps["theme"];
 type Layout = PluginWorkspacePanelProps["layout"];
@@ -24,15 +38,14 @@ type DocumentData = { text: string; revision: string };
  * file panels get this instead of rendering inside the file tab itself.
  */
 export function MarkdownPreviewPanel({ workspaceId, theme, layout }: PluginWorkspacePanelProps) {
-  const [path, setPath] = useState<string | null>(() => lastOpened.get(workspaceId) ?? null);
+  const path = useSyncExternalStore(subscribeShownFiles, () => shownFiles.get(workspaceId) ?? null);
   const [picking, setPicking] = useState(false);
   const queryClient = useQueryClient();
   const styles = useMemo(() => panelStyles(theme, layout.compact), [theme, layout.compact]);
 
   const open = useCallback(
     (next: string) => {
-      lastOpened.set(workspaceId, next);
-      setPath(next);
+      showMarkdownFile(workspaceId, next);
       setPicking(false);
     },
     [workspaceId],

@@ -31,9 +31,11 @@ Paseo's plugin API decides where the plugin can draw:
   after 0.12.0): opening a
   `.md` or `.markdown` file offers **Markdown (RaTeX)** next to Paseo's own Markdown and Source
   panels. Pick it and check **Don't ask me again** to make it the default for Markdown files.
-- **Paseo 0.11 and 0.12**: press <kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd> in a workspace and run
-  **Open Markdown preview (RaTeX)**. The panel lists the workspace's Markdown files; pick one to
-  read it. Relative links to other Markdown files open in the same panel.
+- **Paseo 0.11 and 0.12**: open a Markdown file, press <kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd> and
+  run **Open Markdown preview (RaTeX)**: the panel shows that file, and running the command again
+  from another Markdown file switches it. Run from any other tab, the panel lists the workspace's
+  Markdown files; pick one to read it. Relative links to other Markdown files open in the same
+  panel.
 
 The plugin detects file panel support at runtime, so the same release works on both.
 
@@ -112,6 +114,8 @@ and an edit only lays out the formulas that changed.
   directory that Paseo reports for the open workspace, after resolving symlinks. Paths that
   leave the workspace are refused.
 - Formulas are laid out on the daemon; nothing is sent to other services.
+- To find the open Markdown file on Paseo 0.11 and 0.12, the command reads the tab layout the
+  app keeps in its local storage on web and desktop. It reads nothing else there and writes nothing.
 - Images with `http(s)` addresses load directly on the client, as in any Markdown viewer.
 - Links open in the system browser only for `http`, `https` and `mailto`.
 - Raw HTML is never interpreted. HTML blocks show as source; inline formatting tags such as
@@ -126,7 +130,9 @@ and an edit only lays out the formulas that changed.
 - Characters outside the KaTeX fonts, such as CJK inside `\text{}`, are drawn with the
   client's system fonts.
 - Paseo 0.12 and earlier have no file panels, so there documents open in the plugin's own
-  panel instead of the file tab.
+  panel instead of the file tab. Their plugin API does not say which file is open either: the
+  command reads the app's saved layout, which iOS and Android keep out of reach, so there it
+  always shows the file list.
 
 ## Development
 
