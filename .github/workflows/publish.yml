@@ -44,6 +44,14 @@ jobs:
           assert.equal(lock.packages[''].version, pkg.version);
           NODE
       - run: npm ci
+      - name: Check embedded assets
+        run: |
+          # npm ci regenerates server/vendor from the pinned ratex-wasm; the committed copy must match.
+          if [ -n "$(git status --porcelain -- server/vendor)" ]; then
+            git status --short -- server/vendor
+            echo "::error::server/vendor is out of date. Run npm ci and commit server/vendor."
+            exit 1
+          fi
       - run: npm run typecheck
       - run: npm test
       - name: Browser tests

@@ -10,7 +10,7 @@ The daemon lays out each formula with the bundled `ratex-wasm` module and uses e
 
 ## Setup and requirements
 
-Paseo 0.11.0 or later. Installing from npm or Git needs Node.js and npm on the daemon host. The npm package includes its embedded math engine and glyph outlines; a Git installation prepares them from locked dependencies.
+Paseo 0.11.0 or later. Installing from npm or Git needs Node.js and npm on the daemon host. The npm package and the repository both include the embedded math engine and glyph outlines; a Git installation only installs the locked Markdown parser.
 
 Desktop and web clients render formulas. iOS and Android clients render them where Paseo draws inline SVG icons (0.13 and later) and show the TeX source otherwise.
 

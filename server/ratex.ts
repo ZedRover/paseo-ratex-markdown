@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { brotliDecompressSync } from "node:zlib";
-import type { DisplayList } from "ratex-wasm";
-import { initSync, renderLatexWithOptions } from "../node_modules/ratex-wasm/pkg/ratex_wasm.js";
+import type { DisplayList } from "./vendor/ratex-types.js";
+import { initSync, renderLatexWithOptions } from "./vendor/ratex_wasm.js";
 import { RATEX_WASM_BROTLI_BASE64 } from "./vendor/ratex-wasm-bytes.ts";
 
 /**

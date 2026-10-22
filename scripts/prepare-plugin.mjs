@@ -24,21 +24,20 @@ function run(command, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-// A fresh Git checkout has no generated assets: install the locked production tree
-// without lifecycle scripts, then embed them. npm carries the shrinkwrap, generated
-// assets and bundled dependencies, so that channel needs no installation step here.
-if (!(await exists("server/vendor/ratex-wasm-bytes.ts")) || !(await exists("server/vendor/katex-glyphs.ts"))) {
+// Both channels carry the embedded RaTeX assets in server/vendor. npm also carries the
+// bundled dependencies; a fresh Git checkout installs the locked production tree without
+// lifecycle scripts.
+if (!(await exists("node_modules/markdown-it/package.json"))) {
   if (!(await exists("npm-shrinkwrap.json"))) throw new Error("Missing dependency lock. Reinstall the plugin.");
   run(process.platform === "win32" ? "npm.cmd" : "npm", [
     "ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund",
   ]);
-  run(process.execPath, ["scripts/embed-assets.mjs"]);
 }
 
 for (const file of [
   "server/vendor/ratex-wasm-bytes.ts",
   "server/vendor/katex-glyphs.ts",
-  "node_modules/ratex-wasm/pkg/ratex_wasm.js",
+  "server/vendor/ratex_wasm.js",
   "node_modules/markdown-it/package.json",
   "node_modules/markdown-it-footnote/package.json",
 ]) {

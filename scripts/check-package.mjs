@@ -19,16 +19,18 @@ const manifest = JSON.parse(readFileSync("paseo-plugin.json", "utf8"));
 for (const path of [
   "paseo-plugin.json", "OVERVIEW.md", "README.md", "LICENSE", "npm-shrinkwrap.json",
   "index.client.tsx", "index.server.ts",
-  "server/vendor/ratex-wasm-bytes.ts", "server/vendor/katex-glyphs.ts",
+  "server/vendor/ratex-wasm-bytes.ts", "server/vendor/katex-glyphs.ts", "server/vendor/ratex_wasm.js",
   "scripts/prepare-plugin.mjs", "scripts/embed-assets.mjs",
   manifest.icon, ...manifest.media,
   // Bundled dependencies: Paseo compiles the plugin from them without installing anything.
-  "node_modules/ratex-wasm/pkg/ratex_wasm.js",
   "node_modules/markdown-it/package.json",
   "node_modules/markdown-it-footnote/package.json",
-  "node_modules/opentype.js/package.json",
 ]) {
   assert.ok(paths.has(path), `Missing published file: ${path}`);
+}
+// The embedded assets replace these at runtime; they are only needed to regenerate them.
+for (const path of paths) {
+  assert.ok(!/^node_modules\/(?:ratex-wasm|opentype\.js)\//.test(path), `Development dependency published: ${path}`);
 }
 const shrinkwrap = JSON.parse(readFileSync("npm-shrinkwrap.json", "utf8"));
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));

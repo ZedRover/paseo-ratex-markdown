@@ -1,4 +1,4 @@
-import type { Color, DisplayItem, DisplayList } from "ratex-wasm";
+import type { Color, DisplayItem, DisplayList } from "./vendor/ratex-types.js";
 import {
   UNITS_PER_EM,
   type Bounds,

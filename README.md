@@ -43,7 +43,7 @@ paseo plugin install npm:paseo-ratex-markdown
 paseo plugin ls
 ```
 
-From GitHub (the daemon runs `npm ci` and generates the embedded assets during installation):
+From GitHub (the daemon installs the locked Markdown parser with `npm ci` during installation):
 
 ```bash
 paseo plugin add git:ZedRover/paseo-ratex-markdown
@@ -113,8 +113,11 @@ Markdown text ──► markdown-it + math rules (client) ──► document tre
 ```
 
 The daemon half embeds the `ratex-wasm` binary and KaTeX glyph outlines, so nothing is fetched at
-runtime. During preparation, opentype.js extracts the outlines from the pinned fonts; the
-runtime reads those paths directly without a font parser. Its SVG output matches RaTeX's own
+runtime. `npm run prepare` generates them in `server/vendor` from the pinned `ratex-wasm`
+package, with opentype.js extracting the outlines from its fonts; the runtime reads those paths
+directly without a font parser. The generated files are committed, and CI fails when they no
+longer match the pinned package, so neither the npm package nor a Git installation carries
+`ratex-wasm` itself. Its SVG output matches RaTeX's own
 `ratex-svg` renderer pixel for pixel on the test formulas. Layouts are cached on both sides,
 so a theme change repaints without new requests,
 and an edit only lays out the formulas that changed.
@@ -148,7 +151,7 @@ and an edit only lays out the formulas that changed.
 ## Development
 
 ```bash
-npm ci            # installs dependencies and embeds the RaTeX assets (npm run prepare)
+npm ci            # installs dependencies; npm run prepare refreshes server/vendor
 npm run typecheck
 npm test
 paseo plugin install "$PWD"   # try it on your local daemon
