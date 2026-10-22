@@ -23,22 +23,6 @@ Open Markdown files in [Paseo](https://paseo.sh) with their LaTeX math typeset b
 | --- | --- |
 | ![The same document in the light theme](assets/screenshot-light.png) | ![The document on a narrow screen](assets/screenshot-compact.png) |
 
-## How it opens Markdown
-
-Paseo's plugin API decides where the plugin can draw:
-
-- **Paseo 0.13 and later** ([file panels](https://github.com/getpaseo/paseo/pull/7411), merged
-  after 0.12.0): opening a
-  `.md` or `.markdown` file offers **Markdown (RaTeX)** next to Paseo's own Markdown and Source
-  panels. Pick it and check **Don't ask me again** to make it the default for Markdown files.
-- **Paseo 0.11 and 0.12**: open a Markdown file, press <kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd> and
-  run **Open Markdown preview (RaTeX)**: the panel shows that file, and running the command again
-  from another Markdown file switches it. Run from any other tab, the panel lists the workspace's
-  Markdown files; pick one to read it. Relative links to other Markdown files open in the same
-  panel.
-
-The plugin detects file panel support at runtime, so the same release works on both.
-
 ## Requirements
 
 | Component | Requirement |
@@ -68,6 +52,33 @@ paseo plugin add git:ZedRover/paseo-ratex-markdown
 You can also paste either source into **Settings → Plugins → Plugin source**. The plugin ID,
 the npm package and the repository share one name: update with
 `paseo plugin update paseo-ratex-markdown`.
+
+## Usage
+
+Paseo's plugin API decides where the plugin can draw. The plugin detects file panel support at
+runtime, so the same release works on every version below.
+
+### Paseo 0.11 and 0.12
+
+1. Open a `.md` or `.markdown` file in the workspace.
+2. Press <kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd> and run **Open Markdown preview (RaTeX)**.
+3. A **Markdown (RaTeX)** tab opens in the same pane and shows that file with its math typeset.
+
+Run the command again from another Markdown tab to switch the preview to that file. Run from any
+other tab, the preview lists the workspace's Markdown files instead; pick one to read it. iOS and
+Android always start from this list.
+
+In the preview, the file name at the top opens the list again with a filter, and the reload button
+reads the file again. Relative links to other Markdown files open in the same preview.
+
+### Paseo 0.13 and later
+
+These releases add [file panels](https://github.com/getpaseo/paseo/pull/7411), merged after 0.12.0.
+
+1. Open a `.md` or `.markdown` file. Paseo offers **Markdown (RaTeX)** next to its own Markdown
+   and Source panels.
+2. Pick **Markdown (RaTeX)**. Check **Don't ask me again** to make it the default for Markdown
+   files.
 
 ## Math syntax
 
