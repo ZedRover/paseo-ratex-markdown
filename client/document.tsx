@@ -205,7 +205,7 @@ function FrontMatterView({ frontMatter }: { frontMatter: FrontMatter }) {
             </Text>
           </View>
           <View style={styles.frontMatterValue}>
-            <Text selectable style={styles.paragraph}>
+            <Text selectable style={styles.frontMatterValueText}>
               {row.value}
             </Text>
           </View>

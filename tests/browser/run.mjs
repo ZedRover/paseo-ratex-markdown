@@ -361,6 +361,17 @@ try {
       column.width === 804 && Math.abs(column.left - column.right) <= 1,
       `the file panel's text column is Paseo's 804px reading width, centered: ${JSON.stringify(column)}`,
     );
+    const frontMatter = await page.evaluate(() => {
+      const cell = (text) => [...document.querySelectorAll("div")].find((node) => node.childElementCount === 0 && node.textContent === text);
+      const line = (node) => {
+        const style = getComputedStyle(node);
+        return { top: node.getBoundingClientRect().top, type: `${style.fontSize}/${style.lineHeight} ${style.fontFamily}` };
+      };
+      const [key, value] = [cell("title"), cell("RaTeX Markdown demo")];
+      return { keyColumn: key.parentElement.getBoundingClientRect().width, key: line(key), value: line(value) };
+    });
+    assert.equal(frontMatter.keyColumn, 180, "front matter keys take 30% of the table, at most 180px, as in Paseo");
+    assert.deepEqual(frontMatter.key, frontMatter.value, "a front matter key sits on its value's line in the same type");
     await shot(page, "file-panel-light");
     await appendFile(file, "\nMore: $a^2+b^2=c^2$.\n");
     await page.evaluate(() => window.notifyFile({ type: "changed" }));
