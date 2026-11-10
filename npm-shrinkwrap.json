@@ -1,12 +1,12 @@
 {
   "name": "paseo-ratex-markdown",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "paseo-ratex-markdown",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "bundleDependencies": [
         "markdown-it",
         "markdown-it-footnote"

@@ -18,6 +18,8 @@ export const MATH_SCALE = 1.21;
 export const BODY_FONT_SIZE = 15;
 const LINE_HEIGHT = 24;
 const HEADING_SIZES = [26, 21, 18, 16, 15, 14] as const;
+/** Paseo's default content width. Plugins are not told the user's own setting. */
+const READING_WIDTH = 820;
 
 export type Colors = PluginTheme["colors"];
 export type DocumentStyles = ReturnType<typeof documentStyles>;
@@ -28,11 +30,20 @@ export function headingSize(level: number): number {
 
 export function documentStyles(colors: Colors, compact: boolean) {
   const gap = compact ? 12 : 14;
+  const gutter = compact ? 12 : 16;
   const text: TextStyle = { color: colors.foreground, fontSize: BODY_FONT_SIZE, lineHeight: LINE_HEIGHT };
   const code: TextStyle = { fontFamily: CODE_FONT_FAMILY, fontSize: 13, lineHeight: 20 };
   return {
     gap,
-    document: { gap, paddingHorizontal: compact ? 16 : 28, paddingVertical: compact ? 16 : 24 } satisfies ViewStyle,
+    // Mirrors Paseo's Markdown preview: an 820 reading frame with 8 of inner padding, centered in a 12/16 gutter.
+    document: {
+      gap,
+      width: "100%",
+      maxWidth: READING_WIDTH + 2 * gutter,
+      alignSelf: "center",
+      paddingHorizontal: gutter + 8,
+      paddingVertical: compact ? 16 : 24,
+    } satisfies ViewStyle,
     blocks: { gap } satisfies ViewStyle,
     tightBlocks: { gap: 4 } satisfies ViewStyle,
     paragraph: text,

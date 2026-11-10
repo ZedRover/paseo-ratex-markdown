@@ -169,6 +169,15 @@ try {
       while (scroller && !["auto", "scroll"].includes(getComputedStyle(scroller).overflowX)) scroller = scroller.parentElement;
       return { image: widest.getBoundingClientRect().width, scroller: scroller?.clientWidth ?? 0, scrollWidth: scroller?.scrollWidth ?? 0 };
     });
+  // The first heading spans the document's text column; its insets are measured inside the vertical scroller.
+  const textColumn = (page) =>
+    page.$eval('h1, h2, h3, h4, h5, h6, [role="heading"]', (heading) => {
+      let scroller = heading.parentElement;
+      while (scroller && !["auto", "scroll"].includes(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+      const box = heading.getBoundingClientRect();
+      const inner = scroller.getBoundingClientRect().left + scroller.clientLeft;
+      return { width: box.width, left: box.left - inner, right: inner + scroller.clientWidth - box.right };
+    });
   const pressLabel = (page, label) =>
     page.evaluate((label) => document.querySelector(`[aria-label="${label}"]`).click(), label);
 
@@ -295,6 +304,10 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390), "nothing overflows a 390px window");
     const wide = await widestFormula(page);
     assert.ok(wide.image > wide.scroller && wide.scrollWidth > wide.scroller, `the wide equation scrolls: ${JSON.stringify(wide)}`);
+    const compactColumn = await textColumn(page);
+    assert.ok(compactColumn.left === 20 && compactColumn.right === 20, `a phone's text column sits 20px from each edge: ${JSON.stringify(compactColumn)}`);
+    const copyButtons = await page.$$eval('[aria-label="Copy code"]', (nodes) => nodes.map((node) => getComputedStyle(node).opacity));
+    assert.ok(copyButtons.length > 0 && copyButtons.every((opacity) => opacity === "1"), "touch layouts always show the copy button");
     await shot(page, "workspace-compact");
     await page.close();
     console.log("compact layout: no horizontal overflow");
@@ -343,6 +356,11 @@ try {
     await page.waitForFunction((selector, count) => document.querySelectorAll(selector).length === count, { timeout: 15000 }, formulaImages, DEMO_IMAGES);
     await page.waitForFunction(() => [...document.querySelectorAll("img")].some((node) => node.src.startsWith("data:image/png")), { timeout: 10000 });
     assert.equal((await rpcs(page, "files.image"))[0].input.documentPath, file);
+    const column = await textColumn(page);
+    assert.ok(
+      column.width === 804 && Math.abs(column.left - column.right) <= 1,
+      `the file panel's text column is Paseo's 804px reading width, centered: ${JSON.stringify(column)}`,
+    );
     await shot(page, "file-panel-light");
     await appendFile(file, "\nMore: $a^2+b^2=c^2$.\n");
     await page.evaluate(() => window.notifyFile({ type: "changed" }));
