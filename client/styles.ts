@@ -60,6 +60,15 @@ export function documentStyles(colors: Colors, compact: boolean) {
       paddingHorizontal: 12,
       gap: 6,
     } satisfies ViewStyle,
+    // Level with the language label, and over the end of a long first line when there is none.
+    copyButton: {
+      position: "absolute",
+      top: 6,
+      right: 8,
+      padding: 4,
+      borderRadius: 4,
+      backgroundColor: colors.surface1,
+    } satisfies ViewStyle,
     codeLanguage: { ...code, fontSize: 11, lineHeight: 14, color: colors.foregroundMuted } satisfies TextStyle,
     codeText: { ...code, color: colors.foreground } satisfies TextStyle,
     blockquote: {

@@ -206,6 +206,42 @@ try {
     for (const source of ["$e^{i\\pi} + 1 = 0$", "\\(\\nabla \\cdot \\vec E = \\frac{\\rho}{\\varepsilon_0}\\)", "$\\mu$"]) {
       assert.ok(copied.includes(source), `selection copies ${source}`);
     }
+
+    // A code block's copy button shows while the pointer is over the block, as in Paseo's own.
+    const python = await page.evaluateHandle(
+      () => [...document.querySelectorAll('[aria-label="Copy code"]')].find((node) => node.parentElement.textContent.includes("def gaussian")).parentElement,
+    );
+    await page.evaluate(() => {
+      window.copyButton = (block) => {
+        const button = block.querySelector('[aria-label="Copy code"], [aria-label="Copied"]');
+        return { label: button.getAttribute("aria-label"), opacity: getComputedStyle(button).opacity, icon: button.querySelector("[data-icon]").dataset.icon };
+      };
+    });
+    const copyButton = () => python.evaluate((block) => window.copyButton(block));
+    const untilButton = (expected) =>
+      page.waitForFunction(
+        (block, expected) => Object.entries(expected).every(([key, value]) => window.copyButton(block)[key] === value),
+        { timeout: 5000 },
+        python,
+        expected,
+      );
+    assert.deepEqual(await copyButton(), { label: "Copy code", opacity: "0", icon: "Copy" });
+    await python.hover();
+    await untilButton({ opacity: "1" });
+    await (await python.$('[aria-label="Copy code"]')).click();
+    await untilButton({ label: "Copied", icon: "Check" });
+    const code = parseMarkdown(DEMO).blocks.find((block) => block.type === "code" && block.language === "python").text;
+    assert.deepEqual(await page.evaluate(() => window.copiedTexts), [code]);
+    await untilButton({ label: "Copy code", icon: "Copy" });
+    await page.evaluate(() => (window.copyFails = true));
+    await (await python.$('[aria-label="Copy code"]')).click();
+    await page.waitForFunction(() => window.toasts.length > 0);
+    assert.deepEqual(await page.evaluate(() => window.toasts), [["error", "Could not copy. Select the text and use Copy."]]);
+    assert.equal((await copyButton()).label, "Copy code", "a failed copy shows no check");
+    await page.evaluate(() => (window.copyFails = false));
+    await page.mouse.move(1, 1);
+    await untilButton({ opacity: "0" });
+
     const wide = await widestFormula(page);
     assert.ok(wide.image <= wide.scroller, `the widest equation fits a desktop panel: ${JSON.stringify(wide)}`);
     await page.waitForFunction(() => [...document.querySelectorAll("img")].some((node) => node.src.startsWith("data:image/png")), { timeout: 10000 });

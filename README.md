@@ -16,6 +16,8 @@ Open Markdown files in [Paseo](https://paseo.sh) with their LaTeX math typeset b
 - Formulas are vector images drawn from the KaTeX fonts, so they stay sharp at any zoom and
   follow the Paseo theme. Wide equations scroll sideways instead of shrinking.
 - Selecting text across a formula copies its TeX source.
+- Code blocks have a copy button in the top-right corner, as in Paseo's own Markdown view. It
+  shows on hover with a mouse and stays visible on touch screens.
 - Edits on disk show up while the document is open.
 - An invalid formula shows its source and RaTeX's error instead of breaking the page.
 

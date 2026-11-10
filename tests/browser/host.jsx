@@ -28,6 +28,9 @@ const THEMES = {
 window.rpcCalls = [];
 window.openedUrls = [];
 window.fileListeners = new Set();
+window.copiedTexts = [];
+window.copyFails = false;
+window.toasts = [];
 
 async function callRpc(name, input) {
   window.rpcCalls.push({ name, input });
@@ -92,6 +95,15 @@ const hostModules = {
     FlatList: ReactNative.FlatList,
     ScrollView: ReactNative.ScrollView,
     TextInput: ReactNative.TextInput,
+    // Like Paseo's copyText, it rejects when the platform refuses to copy.
+    copyText: async (text) => {
+      if (window.copyFails) throw new Error("Clipboard copy is unavailable in this browser");
+      window.copiedTexts.push(text);
+    },
+    useToast: () => ({
+      show: (message) => window.toasts.push(["show", message]),
+      error: (message) => window.toasts.push(["error", message]),
+    }),
   },
 };
 

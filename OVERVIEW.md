@@ -1,4 +1,4 @@
-RaTeX Markdown renders Markdown files with their LaTeX math typeset by RaTeX, a KaTeX-compatible math engine written in Rust. Inline math (`$…$`, `\(…\)`) sits on the text baseline, display math (`$$…$$`, `\[…\]`, `math` code fences) is centered and scrolls sideways when it is wider than the panel, and chemistry with `\ce` works too. The rest of the document renders as well: headings, lists and task lists, quotes, tables, code blocks, footnotes, YAML front matter and images.
+RaTeX Markdown renders Markdown files with their LaTeX math typeset by RaTeX, a KaTeX-compatible math engine written in Rust. Inline math (`$…$`, `\(…\)`) sits on the text baseline, display math (`$$…$$`, `\[…\]`, `math` code fences) is centered and scrolls sideways when it is wider than the panel, and chemistry with `\ce` works too. The rest of the document renders as well: headings, lists and task lists, quotes, tables, code blocks, footnotes, YAML front matter and images. Code blocks have a copy button, as in Paseo's own Markdown view.
 
 ## Opening a file
 

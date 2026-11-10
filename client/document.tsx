@@ -1,6 +1,7 @@
 import { Icon } from "@getpaseo/plugin/client/react-native";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { CopyButton } from "./copy-button";
 import type { Align, Block, FrontMatter, Inline, ListItem } from "./markdown/ast";
 import { parseMarkdown } from "./markdown/parse";
 import { DocumentContext, useDocument, type DocumentContextValue, type DocumentEnvironment } from "./document-context";
@@ -140,15 +141,19 @@ function ListMarker({ item, label }: { item: ListItem; label: string }) {
 }
 
 function CodeBlock({ language, text }: { language: string; text: string }) {
-  const { styles } = useDocument();
+  const { styles, layout } = useDocument();
+  const [hovered, setHovered] = useState(false);
+  // Touch screens have no hover, so there the copy button stays visible.
+  const touch = layout.compact || layout.platform !== "web";
   return (
-    <View style={styles.codeBlock}>
+    <View style={styles.codeBlock} onPointerEnter={() => setHovered(true)} onPointerLeave={() => setHovered(false)}>
       {language ? <Text style={styles.codeLanguage}>{language}</Text> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator>
         <Text selectable style={styles.codeText}>
           {text}
         </Text>
       </ScrollView>
+      <CopyButton text={text} visible={touch || hovered} />
     </View>
   );
 }
